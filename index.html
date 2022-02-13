@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .wrapper {
+            position: relative;
+        }
+
+        #cache {
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            z-index: -10;
+        }
+    </style>
+</head>
+
+<body>
+    <div>
+        <label>视频地址：</label>
+        <div class="wrapper">
+            <span id="videoM3u8">http://rubysiu.fun/</span>
+            <textarea id="cache">这是幕后黑手</textarea>
+            <button onclick="copyText()">复制</button>
+        </div>
+        <label>房间号：</label>
+        <input type="text" name="roomId" value="773211710">
+        <input type="button" value="获取" onclick="getVideo()">
+    </div>
+    <div>
+        <video id="example_video_1" class="video-js vjs-default-skin" controls preload="none">
+            <source src="" type="application/x-mpegURL">
+        </video>
+    </div>
+</body>
+<script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+<link href="https://cdn.bootcss.com/video.js/7.6.5/alt/video-js-cdn.min.css" rel="stylesheet">
+<script src="https://cdn.bootcss.com/video.js/6.6.2/video.js"></script>
+<script src="https://cdn.bootcss.com/videojs-contrib-hls/5.15.0/videojs-contrib-hls.min.js"></script>
+<script>
+    var iframeDom, roomId, player
+    var url = "https://apph5.taolushare05.com/tlShare/replay?roomId="
+    var apiUrl = "https://apis.taolu.fit/deseappV11/avShare/querySharePlayback?roomId="
+    function init() {
+        roomId = document.querySelector("input[name='roomId']").value
+    }
+    function getVideo() {
+        init()
+        if (player) {
+            player.reset()
+        }
+
+        getApi(roomId)
+    }
+    function getApi(roomId) {
+        $.ajax({
+            url: apiUrl + roomId,
+            success(res) {
+                document.querySelector("#videoM3u8").innerText = res.data.share.shareVedio.tryUrl
+
+                if (player) {
+                    player.src([
+                        {
+                            type: 'application/x-mpegURL',
+                            src: res.data.share.shareVedio.tryUrl
+                        },
+                    ])
+                    player.load()
+                } else {
+                    document.querySelector("source").src = res.data.share.shareVedio.tryUrl
+                    playVideo()
+                }
+
+            }
+        })
+    }
+    function copyText() {
+        var text = document.getElementById("videoM3u8").innerText;
+        var input = document.getElementById("cache");
+        input.value = text; // 修改文本框的内容
+        input.select(); // 选中文本
+        document.execCommand("copy"); // 执行浏览器复制命令
+        alert("复制成功");
+    }
+
+    function playVideo() {
+        player = videojs('example_video_1', {
+            height: 450,
+            width: 700,
+            bigPlayButton: false,
+            textTrackDisplay: false,
+            posterImage: true,
+            errorDisplay: false,
+        }, function () {
+            this.on('loadstart', function () {
+                //开始加载
+                console.log('loadstart')
+                player.play()
+            })
+        })
+    }
+</script>
+
+</html>
